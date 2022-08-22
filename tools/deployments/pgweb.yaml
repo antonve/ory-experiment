@@ -10,3 +10,6 @@ spec:
       name: pgweb
       ports:
         - containerPort: 8081
+      env:
+        - name: DATABASE_URL
+          value: postgres://postgres:foobar@postgresql:5432/kratos?sslmode=disable

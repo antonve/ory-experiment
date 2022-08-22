@@ -1,0 +1,7 @@
+kratos:
+  config:
+    dsn: postgres://kratos:postgres@postgresql:5432/kratos
+    secrets:
+      default:
+        - dolore occaecat nostrud Ut
+        - sit et commodoaute ut voluptate consectetur Duis

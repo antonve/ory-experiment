@@ -4,11 +4,8 @@
 load('ext://helm_remote', 'helm_remote')
 
 # Infra
-helm_remote('postgres-operator',
-            repo_name='postgres-operator',
-            repo_url='https://opensource.zalando.com/postgres-operator/charts/postgres-operator/')
-
 include('./gateway/Tiltfile')
+include('./ory/Tiltfile')
 
 # Tools
 k8s_yaml('./tools/deployments/pgweb.yaml')
