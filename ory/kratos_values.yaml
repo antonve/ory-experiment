@@ -1,7 +1,75 @@
 kratos:
+  development: true
+  automigration:
+    enabled: true
+
+  identitySchemas:
+    "identity.default.schema.json": |
+      {
+        "$id": "test",
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "User",
+        "type": "object",
+        "properties": {
+          "traits": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "format": "email",
+                "title": "E-Mail",
+                "minLength": 3,
+                "ory.sh/kratos": {
+                  "credentials": {
+                    "password": {
+                      "identifier": true
+                    }
+                  },
+                  "verification": {
+                    "via": "email"
+                  },
+                  "recovery": {
+                    "via": "email"
+                  }
+                }
+              },
+              "display_namename": {
+                "type": "string",
+                "title": "Display Name"
+              }
+            },
+            "required": [
+              "email"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+
+  # kratos config https://www.ory.sh/docs/kratos/reference/configuration
   config:
-    dsn: postgres://kratos:postgres@postgresql:5432/kratos
+    dsn: postgres://postgres:foobar@postgresql:5432/kratos
     secrets:
       default:
         - dolore occaecat nostrud Ut
         - sit et commodoaute ut voluptate consectetur Duis
+
+    identity:
+      schemas:
+        - id: user
+          url: file:///etc/config/identity.default.schema.json
+      default_schema_id: "user"
+
+
+    selfservice:
+      default_browser_return_url: http://localhost
+
+    courier:
+      smtp:
+        connection_uri: smtps://test:test@mailslurper/?skip_ssl_verify=true
+
+ingress:
+  admin:
+    enabled: true
+  public:
+    enabled: true

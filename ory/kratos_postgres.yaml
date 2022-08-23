@@ -11,7 +11,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/tmp/kratos" # Sets the volume's path
+    path: "/tmp/kratos-experiment" # Sets the volume's path
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim # Create PVC
