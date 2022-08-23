@@ -9,10 +9,17 @@ spec:
   rules:
   - http:
       paths:
-      - path: /identity
+      - path: /kratos
         pathType: Prefix
         backend:
           service:
-            name: identity-api
+            name: kratos-public
             port:
-              number: 4000
+              number: 4433
+      - path: /kratos_admin
+        pathType: Prefix
+        backend:
+          service:
+            name: kratos-admin
+            port:
+              number: 4434

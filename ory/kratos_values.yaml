@@ -67,9 +67,3 @@ kratos:
     courier:
       smtp:
         connection_uri: smtps://test:test@mailslurper/?skip_ssl_verify=true
-
-ingress:
-  admin:
-    enabled: true
-  public:
-    enabled: true
