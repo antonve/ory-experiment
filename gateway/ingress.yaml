@@ -16,3 +16,17 @@ spec:
             name: pgweb
             port:
               number: 8081
+      - path: /kratos/admin
+        pathType: Prefix
+        backend:
+          service:
+            name: kratos-admin
+            port:
+              number: 80
+      - path: /kratos
+        pathType: Prefix
+        backend:
+          service:
+            name: kratos-public
+            port:
+              number: 80
