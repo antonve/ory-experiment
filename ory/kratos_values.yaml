@@ -61,9 +61,14 @@ kratos:
       default_schema_id: "user"
 
     version: v0.10.1
+    log:
+      leak_sensitive_values: true
 
     selfservice:
       default_browser_return_url: http://localhost
+      flows:
+        login:
+          ui_url: http://localhost:3000/login
 
     courier:
       smtp:
@@ -74,6 +79,6 @@ kratos:
         base_url: http://localhost/kratos/
         cors:
           allowed_origins:
-            - http://localhost
+            - http://localhost:3000
       admin:
         base_url: http://localhost/admin/
