@@ -60,6 +60,7 @@ kratos:
           url: file:///etc/config/identity.default.schema.json
       default_schema_id: "user"
 
+    version: v0.10.1
 
     selfservice:
       default_browser_return_url: http://localhost
@@ -67,3 +68,12 @@ kratos:
     courier:
       smtp:
         connection_uri: smtps://test:test@mailslurper/?skip_ssl_verify=true
+
+    serve:
+      public:
+        base_url: http://localhost/kratos/
+        cors:
+          allowed_origins:
+            - http://localhost
+      admin:
+        base_url: http://localhost/admin/
