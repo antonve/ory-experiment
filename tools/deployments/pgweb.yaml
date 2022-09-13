@@ -1,15 +1,38 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  labels:
-    run: pgweb
   name: pgweb
+  labels:
+    app: pgweb
 spec:
-  containers:
-    - image: sosedoff/pgweb
-      name: pgweb
-      ports:
-        - containerPort: 8081
-      env:
-        - name: DATABASE_URL
-          value: postgres://postgres:foobar@postgresql:5432/kratos?sslmode=disable
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pgweb
+  template:
+    metadata:
+      labels:
+        app: pgweb
+    spec:
+      containers:
+        - name: pgweb
+          image: sosedoff/pgweb
+          ports:
+            - containerPort: 8081
+          env:
+            - name: DATABASE_URL
+              value: "postgres://postgres:foobar@postgresql/kratos?sslmode=disable"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgweb
+  labels:
+    app: pgweb
+spec:
+  ports:
+    - port: 8081
+      name: http
+  selector:
+    app: pgweb
