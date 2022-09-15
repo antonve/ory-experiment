@@ -68,7 +68,7 @@ kratos:
       default_browser_return_url: http://localhost
       flows:
         login:
-          ui_url: http://localhost:3000/login
+          ui_url: http://localhost:3002/login
 
     courier:
       smtp:
@@ -79,6 +79,6 @@ kratos:
         base_url: http://localhost/kratos/
         cors:
           allowed_origins:
-            - http://localhost:3000
+            - http://localhost:3002
       admin:
         base_url: http://localhost/admin/
