@@ -1,7 +1,7 @@
 import type { NextPage } from 'next'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { initLogin } from '../api'
+import { initLoginFlow } from '../api'
 
 const Login: NextPage = () => {
   const { register, handleSubmit, formState } = useForm({
@@ -12,7 +12,7 @@ const Login: NextPage = () => {
   })
 
   useEffect(() => {
-    initLogin().then(res => console.log(res))
+    initLoginFlow().then(res => console.log(res))
   }, [])
 
   const onSubmit = (data: any) => console.log(data, formState)
