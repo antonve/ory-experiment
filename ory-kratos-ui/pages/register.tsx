@@ -7,7 +7,7 @@ const Register: NextPage = () => {
   const { register, handleSubmit, formState } = useForm({
     defaultValues: {
       'traits.email': 'test@example.com',
-      password: 'foobar',
+      password: 'fogewgewgwefewewfewgewgewdsf',
       'traits.display_namename': 'John Smith',
     },
   })
@@ -26,7 +26,16 @@ const Register: NextPage = () => {
 
     console.log(flow, data)
 
-    submitRegistrationFlow(flow, data).then(res =>
+    const csrfToken = flow.ui.nodes.find(
+      el => el.attributes.name === 'csrf_token',
+    )
+
+    if (!csrfToken) {
+      console.error('csrf_token not found')
+      return
+    }
+
+    submitRegistrationFlow(flow, data, csrfToken.attributes.value).then(res =>
       console.log('submitted', res),
     )
   }

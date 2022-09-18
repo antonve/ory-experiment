@@ -16,14 +16,22 @@ async function initRegistrationFlow() {
   return await res.json()
 }
 
-async function submitRegistrationFlow(flow: any, payload: any) {
+async function submitRegistrationFlow(
+  flow: any,
+  payload: any,
+  csrfToken: string,
+) {
   const res = await fetch(flow.ui.action, {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      ...payload,
+      method: 'password',
+      csrf_token: csrfToken,
+    }),
   })
 
   return await res.json()
