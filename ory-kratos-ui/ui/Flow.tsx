@@ -48,6 +48,7 @@ export type Method =
 
 interface FlowProps {
   flow: SelfServiceFlow | undefined
+  setFlow: (flow: SelfServiceFlow | undefined) => void
   method: Method
 }
 
@@ -97,7 +98,7 @@ const defaultValuesFromNodes = (nodes: UiNode[]): { [key: string]: any } => {
     }, {} as { [key: string]: any })
 }
 
-const Flow = ({ flow, method }: FlowProps) => {
+const Flow = ({ flow, method, setFlow }: FlowProps) => {
   const nodes = filterNodes(flow, method)
   const defaultValues = defaultValuesFromNodes(nodes)
 
@@ -116,13 +117,13 @@ const Flow = ({ flow, method }: FlowProps) => {
       return
     }
 
-    console.log(defaultValues, getValues(), data)
-
     try {
       const res = await sdk.submitSelfServiceRegistrationFlow(flow.id, data)
       console.log('finished', res)
     } catch (err) {
-      console.error(err)
+      if (err!.response.data) {
+        setFlow(err?.response.data)
+      }
     }
   }
 
