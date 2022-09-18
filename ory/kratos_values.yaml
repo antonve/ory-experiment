@@ -70,8 +70,17 @@ kratos:
         registration:
           ui_url: "/register"
           lifespan: 1h
+          after:
+            password:
+              hooks:
+                - hook: session
         login:
           ui_url: http://localhost:3002/login
+
+    cookies:
+      domain: localhost
+      path: /
+      same_site: Lax
 
     courier:
       smtp:
@@ -83,5 +92,9 @@ kratos:
         cors:
           allowed_origins:
             - http://localhost:3002
+        request_log:
+          disable_for_health: true
       admin:
         base_url: http://localhost/admin/
+        request_log:
+          disable_for_health: true
