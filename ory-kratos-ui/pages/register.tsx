@@ -2,6 +2,7 @@ import type { NextPage } from 'next'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { initRegistrationFlow, submitRegistrationFlow } from '../api'
+import Flow from '../ui/Flow'
 
 const Register: NextPage = () => {
   const { register, handleSubmit, formState } = useForm({
@@ -18,59 +19,11 @@ const Register: NextPage = () => {
     initRegistrationFlow().then(res => setFlow(res))
   }, [])
 
-  const onSubmit = (data: any) => {
-    if (flow === undefined) {
-      console.error('no registration flow available to use')
-      return
-    }
-
-    console.log(flow, data)
-
-    const csrfToken = flow.ui.nodes.find(
-      el => el.attributes.name === 'csrf_token',
-    )
-
-    if (!csrfToken) {
-      console.error('csrf_token not found')
-      return
-    }
-
-    submitRegistrationFlow(flow, data, csrfToken.attributes.value).then(res =>
-      console.log('submitted', res),
-    )
-  }
-
   return (
     <div>
       <h1>Register</h1>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <label style={{ display: 'block' }} htmlFor="email">
-          Email
-        </label>
-        <input id="email" {...register('traits.email', { required: true })} />
-
-        <label style={{ display: 'block' }} htmlFor="password">
-          Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          {...register('password', { required: true })}
-        />
-
-        <label style={{ display: 'block' }} htmlFor="displayName">
-          Display name
-        </label>
-        <input
-          id="displayName"
-          {...register('traits.display_namename', { required: true })}
-        />
-
-        <br />
-
-        <input type="submit" disabled={formState.isSubmitting} />
-      </form>
+      <Flow flow={flow} method="password" />
     </div>
   )
 }
