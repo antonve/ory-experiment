@@ -55,6 +55,10 @@ const Header = () => {
 
     return (
       <>
+        <span>
+          Hello, <strong>{session.identity.traits['display_namename']}</strong>
+        </span>
+        <br />
         <Link href="/">
           <a>Home</a>
         </Link>

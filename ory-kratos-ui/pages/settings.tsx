@@ -3,17 +3,32 @@ import {
   SelfServiceSettingsFlow,
 } from '@ory/client'
 import type { NextPage, GetServerSideProps } from 'next'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Flow from '../ui/Flow'
 import ory from '../src/ory'
 import axios from 'axios'
+import { useSession } from '../src/session'
 
 interface Props {
   initialFlow: SelfServiceSettingsFlow
 }
 
-const Settings: NextPage<Props> = ({ initialFlow }) => {
-  const [flow, setFlow] = useState(initialFlow)
+const Settings: NextPage<Props> = () => {
+  const [flow, setFlow] = useState(
+    undefined as SelfServiceSettingsFlow | undefined,
+  )
+  const [_, setSession] = useSession()
+
+  useEffect(() => {
+    ory.initializeSelfServiceSettingsFlowForBrowsers().then(({ data }) => {
+      console.log(data)
+      setFlow(data)
+    })
+  }, [])
+
+  if (!flow) {
+    return null
+  }
 
   const onSubmit = async (data: any) => {
     if (flow === undefined) {
@@ -25,6 +40,8 @@ const Settings: NextPage<Props> = ({ initialFlow }) => {
       console.log(data)
       const res = await ory.submitSelfServiceSettingsFlow(flow.id, data)
       console.log('finished', res)
+      const session = await ory.toSession()
+      setSession(session.data)
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.data) {
         // TODO: figure out types
@@ -36,35 +53,12 @@ const Settings: NextPage<Props> = ({ initialFlow }) => {
   return (
     <div>
       <h1>Settings</h1>
+      <h2>Profile</h2>
+      <Flow flow={flow} method="profile" onSubmit={onSubmit} />
+      <h2>Password</h2>
       <Flow flow={flow} method="password" onSubmit={onSubmit} />
     </div>
   )
-}
-
-export const getServerSideProps: GetServerSideProps = async ctx => {
-  try {
-    const { data: initialFlow, headers } =
-      await ory.initializeSelfServiceSettingsFlowForBrowsers(undefined, {
-        headers: {
-          cookie: ctx.req.headers.cookie,
-        },
-      })
-
-    // Proxy cookies
-    if (headers['set-cookie']) {
-      ctx.res.setHeader('set-cookie', headers['set-cookie'])
-    }
-
-    return { props: { initialFlow } }
-  } catch (err) {
-    console.error(err)
-    return {
-      redirect: {
-        destination: '/login',
-      },
-      props: {},
-    }
-  }
 }
 
 export default Settings
