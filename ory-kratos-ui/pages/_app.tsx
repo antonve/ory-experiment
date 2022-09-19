@@ -91,6 +91,10 @@ const Header = () => {
       <Link href="/register">
         <a>Register</a>
       </Link>
+      <br />
+      <Link href="/account-recovery">
+        <a>Forgot password?</a>
+      </Link>
     </>
   )
 }

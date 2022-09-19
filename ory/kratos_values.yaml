@@ -67,10 +67,16 @@ kratos:
     selfservice:
       default_browser_return_url: /
       methods:
+        link:
+          enabled: true
         password:
           config:
             haveibeenpwned_enabled: false
       flows:
+        recovery:
+          enabled: true
+          ui_url: http://localhost:3002/account-recovery
+
         registration:
           ui_url: "/register"
           lifespan: 1h
@@ -78,8 +84,12 @@ kratos:
             password:
               hooks:
                 - hook: session
+
         login:
           ui_url: http://localhost:3002/login
+
+        settings:
+          ui_url: http://localhost:3002/settings
 
     cookies:
       domain: localhost
@@ -91,7 +101,7 @@ kratos:
 
     courier:
       smtp:
-        connection_uri: smtps://test:test@mailslurper/?skip_ssl_verify=true
+        connection_uri: smtp://mailhog:1025/?disable_starttls=true
 
     serve:
       public:

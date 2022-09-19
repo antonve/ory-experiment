@@ -16,6 +16,13 @@ spec:
             name: pgweb
             port:
               number: 8081
+      - path: /mail
+        pathType: Prefix
+        backend:
+          service:
+            name: mailhog
+            port:
+              number: 8025
       - path: /kratos
         pathType: Prefix
         backend:
