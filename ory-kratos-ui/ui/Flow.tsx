@@ -6,6 +6,7 @@ import {
   SelfServiceVerificationFlow,
   UiNode,
   UiNodeInputAttributes,
+  UiText,
 } from '@ory/client'
 import {
   isUiNodeInputAttributes,
@@ -21,7 +22,6 @@ import { NodeImage } from './NodeImage'
 import { NodeInput } from './NodeInput'
 import { NodeScript } from './NodeScript'
 import { NodeText } from './NodeText'
-import ory from '../src/ory'
 
 export type SelfServiceFlow =
   | SelfServiceLoginFlow
@@ -121,6 +121,7 @@ const Flow = ({ flow, method, setFlow }: FlowProps) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
+      <MessagesList messages={flow.ui.messages} />
       {nodes.map((node, k) => {
         const id = getNodeId(node)
         return (
@@ -133,6 +134,40 @@ const Flow = ({ flow, method, setFlow }: FlowProps) => {
         )
       })}
     </form>
+  )
+}
+
+interface MessagesListProps {
+  messages: UiText[] | undefined
+}
+
+const MessagesList = ({ messages }: MessagesListProps) => {
+  if (!messages) {
+    return null
+  }
+
+  return (
+    <ul>
+      {messages.map(m => (
+        <Message key={m.id} message={m} />
+      ))}
+    </ul>
+  )
+}
+
+interface MessageProps {
+  message: UiText
+}
+
+export const Message = ({ message }: MessageProps) => {
+  return (
+    <li
+      style={{
+        backgroundColor: message.type === 'error' ? 'lightred' : 'lightblue',
+      }}
+    >
+      {message.text}
+    </li>
   )
 }
 
