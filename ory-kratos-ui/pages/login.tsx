@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Flow from '../ui/Flow'
 import ory from '../src/ory'
 import axios from 'axios'
+import { useSession } from '../src/useSession'
 
 interface Props {
   initialFlow: SelfServiceLoginFlow
@@ -11,6 +12,11 @@ interface Props {
 
 const Login: NextPage<Props> = ({ initialFlow }) => {
   const [flow, setFlow] = useState(initialFlow)
+  const [session, setSession] = useSession()
+
+  if (session) {
+    return <p>Already logged in</p>
+  }
 
   const onSubmit = async (data: any) => {
     if (flow === undefined) {
@@ -21,7 +27,7 @@ const Login: NextPage<Props> = ({ initialFlow }) => {
     try {
       console.log(data)
       const res = await ory.submitSelfServiceLoginFlow(flow.id, data)
-      console.log('finished', res)
+      setSession(res.data.session)
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.data) {
         // TODO: figure out types

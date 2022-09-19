@@ -1,34 +1,93 @@
 import App, { AppContext, AppProps } from 'next/app'
 import Link from 'next/link'
 import ory from '../src/ory'
+import { Atom, Provider } from 'jotai'
+import { sessionAtom, useSession } from '../src/useSession'
+import { Session } from '@ory/client'
+import { useRouter } from 'next/router'
 
-const MyApp = ({ Component, pageProps }: AppProps) => (
-  <div>
-    <Link href="/login">
-      <a>Log in</a>
-    </Link>
-    <br />
-    <Link href="/register">
-      <a>Register</a>
-    </Link>
-    <hr />
-    <Component {...pageProps} />
-  </div>
-)
+interface Props {
+  initialState: {
+    session: Session | undefined
+  }
+}
+
+const createInitialValues = () => {
+  const initialValues: (readonly [Atom<unknown>, unknown])[] = []
+  const get = () => initialValues
+  const set = function <Value>(anAtom: Atom<Value>, value: Value) {
+    initialValues.push([anAtom, value])
+  }
+  return { get, set }
+}
+
+const MyApp = ({ Component, pageProps }: AppProps<Props>) => {
+  const { initialState } = pageProps
+  const { get: getInitialValues, set: setInitialValues } = createInitialValues()
+
+  setInitialValues(sessionAtom, initialState.session)
+
+  return (
+    <Provider initialValues={getInitialValues()}>
+      <div>
+        <Header />
+        <hr />
+        <Component {...pageProps} />
+      </div>
+    </Provider>
+  )
+}
+
+const Header = () => {
+  const [session] = useSession()
+  const router = useRouter()
+
+  if (session) {
+    const logOut = async () => {
+      try {
+        const { data } = await ory.createSelfServiceLogoutFlowUrlForBrowsers()
+        router.replace(data.logout_url)
+      } catch (err) {
+        // TODO
+        console.error(err)
+      }
+    }
+
+    return (
+      <>
+        <a href="#" onClick={logOut}>
+          Log out
+        </a>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <Link href="/login">
+        <a>Log in</a>
+      </Link>
+      <br />
+      <Link href="/register">
+        <a>Register</a>
+      </Link>
+    </>
+  )
+}
 
 MyApp.getInitialProps = async (ctx: AppContext) => {
-  // TODO: Refactor
   const props = await App.getInitialProps(ctx)
+  props.pageProps.initialState = { session: undefined }
 
   const cookie = ctx.ctx.req?.headers.cookie
   if (cookie) {
     try {
       const { data: session } = await ory.toSession(undefined, cookie)
-      return { ...props, session }
+      props.pageProps.initialState.session = session
     } catch (err) {}
   }
 
-  return { ...props }
+  return props
 }
 
 export default MyApp
