@@ -66,6 +66,10 @@ kratos:
 
     selfservice:
       default_browser_return_url: /
+      methods:
+        password:
+          config:
+            haveibeenpwned_enabled: false
       flows:
         registration:
           ui_url: "/register"
@@ -81,6 +85,9 @@ kratos:
       domain: localhost
       path: /
       same_site: Lax
+
+    session:
+      lifespan: 720h0m0s
 
     courier:
       smtp:
