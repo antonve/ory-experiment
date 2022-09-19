@@ -1,19 +1,11 @@
 import {
-  Configuration,
   SelfServiceLoginFlow,
   SelfServiceRecoveryFlow,
   SelfServiceRegistrationFlow,
   SelfServiceSettingsFlow,
   SelfServiceVerificationFlow,
-  SubmitSelfServiceLoginFlowBody,
-  SubmitSelfServiceRecoveryFlowBody,
-  SubmitSelfServiceRegistrationFlowBody,
-  SubmitSelfServiceSettingsFlowBody,
-  SubmitSelfServiceVerificationFlowBody,
   UiNode,
   UiNodeInputAttributes,
-  V0alpha2Api,
-  V0alpha2ApiInterface,
 } from '@ory/client'
 import {
   isUiNodeInputAttributes,
@@ -23,12 +15,13 @@ import {
   isUiNodeTextAttributes,
   isUiNodeAnchorAttributes,
 } from '@ory/integrations/ui'
-import { useForm, UseFormRegister, UseFormSetValue } from 'react-hook-form'
+import { useForm, UseFormRegister } from 'react-hook-form'
 import { NodeAnchor } from './NodeAnchor'
 import { NodeImage } from './NodeImage'
 import { NodeInput } from './NodeInput'
 import { NodeScript } from './NodeScript'
 import { NodeText } from './NodeText'
+import ory from '../src/ory'
 
 export type SelfServiceFlow =
   | SelfServiceLoginFlow
@@ -51,10 +44,6 @@ interface FlowProps {
   setFlow: (flow: SelfServiceFlow | undefined) => void
   method: Method
 }
-
-let sdk: V0alpha2ApiInterface = new V0alpha2Api(
-  new Configuration({ basePath: '/kratos' }),
-) as unknown as V0alpha2ApiInterface
 
 const filterNodes = (
   flow: SelfServiceFlow | undefined,
@@ -118,9 +107,10 @@ const Flow = ({ flow, method, setFlow }: FlowProps) => {
     }
 
     try {
-      const res = await sdk.submitSelfServiceRegistrationFlow(flow.id, data)
+      const res = await ory.submitSelfServiceRegistrationFlow(flow.id, data)
       console.log('finished', res)
     } catch (err) {
+      // TODO: figure out these types
       if (err!.response.data) {
         setFlow(err?.response.data)
       }
