@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Flow from '../ui/Flow'
 import ory from '../src/ory'
 import axios from 'axios'
-import { useSession } from '../src/useSession'
+import { useAnonymouseRoute, useSession } from '../src/session'
 
 interface Props {
   initialFlow: SelfServiceLoginFlow
@@ -12,11 +12,10 @@ interface Props {
 
 const Login: NextPage<Props> = ({ initialFlow }) => {
   const [flow, setFlow] = useState(initialFlow)
-  const [session, setSession] = useSession()
+  const [_, setSession] = useSession()
 
-  if (session) {
-    return <p>Already logged in</p>
-  }
+  // Would be better to do this at the layout level once the feature is available
+  useAnonymouseRoute()
 
   const onSubmit = async (data: any) => {
     if (flow === undefined) {

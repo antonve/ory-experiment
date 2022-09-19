@@ -2,7 +2,7 @@ import App, { AppContext, AppProps } from 'next/app'
 import Link from 'next/link'
 import ory from '../src/ory'
 import { Atom, Provider } from 'jotai'
-import { sessionAtom, useSession } from '../src/useSession'
+import { sessionAtom, useSession } from '../src/session'
 import { Session } from '@ory/client'
 import { useRouter } from 'next/router'
 
