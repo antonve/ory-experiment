@@ -41,8 +41,8 @@ export type Method =
 
 interface FlowProps {
   flow: SelfServiceFlow | undefined
-  setFlow: (flow: SelfServiceFlow | undefined) => void
   method: Method
+  onSubmit: (data: any) => void
 }
 
 const filterNodes = (
@@ -87,34 +87,16 @@ const defaultValuesFromNodes = (nodes: UiNode[]): { [key: string]: any } => {
     }, {} as { [key: string]: any })
 }
 
-const Flow = ({ flow, method, setFlow }: FlowProps) => {
+const Flow = ({ flow, method, onSubmit }: FlowProps) => {
   const nodes = filterNodes(flow, method)
   const defaultValues = defaultValuesFromNodes(nodes)
 
-  const { register, handleSubmit, formState, setValue, getValues, trigger } =
-    useForm({
-      defaultValues,
-    })
+  const { register, handleSubmit, formState } = useForm({
+    defaultValues,
+  })
 
   if (!flow) {
     return null
-  }
-
-  const onSubmit = async (data: any) => {
-    if (flow === undefined) {
-      console.error('no registration flow available to use')
-      return
-    }
-
-    try {
-      const res = await ory.submitSelfServiceRegistrationFlow(flow.id, data)
-      console.log('finished', res)
-    } catch (err) {
-      // TODO: figure out these types
-      if (err!.response.data) {
-        setFlow(err?.response.data)
-      }
-    }
   }
 
   const disabled = formState.isSubmitting
