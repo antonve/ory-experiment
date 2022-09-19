@@ -1,26 +1,63 @@
-import type { NextPage } from 'next'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { initRegistrationFlow, submitRegistrationFlow } from '../api'
-import Flow, { SelfServiceFlow } from '../ui/Flow'
+import { SelfServiceRegistrationFlow } from '@ory/client'
+import type { NextPage, GetServerSideProps } from 'next'
+import { useState } from 'react'
+import Flow from '../ui/Flow'
+import ory from '../src/ory'
+import axios from 'axios'
 
-const Register: NextPage = () => {
-  const [flow, setFlow] = useState(undefined)
+interface Props {
+  initialFlow: SelfServiceRegistrationFlow
+}
 
-  useEffect(() => {
-    initRegistrationFlow().then(res => setFlow(res))
-  }, [])
+const Register: NextPage<Props> = ({ initialFlow }) => {
+  const [flow, setFlow] = useState(initialFlow)
+
+  const onSubmit = async (data: any) => {
+    if (flow === undefined) {
+      console.error('no registration flow available to use')
+      return
+    }
+
+    try {
+      console.log(data)
+      const res = await ory.submitSelfServiceRegistrationFlow(flow.id, data)
+      console.log('finished', res)
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.data) {
+        // TODO: figure out types
+        setFlow(err.response.data as SelfServiceRegistrationFlow)
+      }
+    }
+  }
 
   return (
     <div>
-      <h1>Register</h1>
-      <Flow
-        flow={flow}
-        method="password"
-        setFlow={(flow: any) => setFlow(flow)}
-      />
+      <h1>Create account</h1>
+      <Flow flow={flow} method="password" onSubmit={onSubmit} />
     </div>
   )
+}
+
+export const getServerSideProps: GetServerSideProps = async ctx => {
+  try {
+    const { data: initialFlow, headers } =
+      await ory.initializeSelfServiceRegistrationFlowForBrowsers()
+
+    // Proxy cookies
+    if (headers['set-cookie']) {
+      ctx.res.setHeader('set-cookie', headers['set-cookie'])
+    }
+
+    return { props: { initialFlow } }
+  } catch (err) {
+    return {
+      redirect: {
+        statusCode: 500,
+        destination: '/error',
+      },
+      props: {},
+    }
+  }
 }
 
 export default Register

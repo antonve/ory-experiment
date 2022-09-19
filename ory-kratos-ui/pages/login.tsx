@@ -11,7 +11,6 @@ interface Props {
 
 const Login: NextPage<Props> = ({ initialFlow }) => {
   const [flow, setFlow] = useState(initialFlow)
-  console.log(flow)
 
   const onSubmit = async (data: any) => {
     if (flow === undefined) {
