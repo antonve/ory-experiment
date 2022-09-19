@@ -55,6 +55,18 @@ const Header = () => {
 
     return (
       <>
+        <Link href="/">
+          <a>Home</a>
+        </Link>
+        <br />
+        <Link href="/private">
+          <a>Protected page</a>
+        </Link>
+        <br />
+        <Link href="/settings">
+          <a>Settings</a>
+        </Link>
+        <br />
         <a href="#" onClick={logOut}>
           Log out
         </a>
@@ -64,6 +76,10 @@ const Header = () => {
 
   return (
     <>
+      <Link href="/">
+        <a>Home</a>
+      </Link>
+      <br />
       <Link href="/login">
         <a>Log in</a>
       </Link>
