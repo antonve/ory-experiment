@@ -45,6 +45,11 @@ kratos:
           }
         }
       }
+    # this shouldn't be under identitySchemas but it's the easiest way to add a file to the container
+    "post-profile-update-hook.jsonnet": |
+      function (ctx) {
+        content: "User %s just changed their display name to %s" % [ctx.identity.id, ctx.identity.traits.display_namename],
+      }
 
   # kratos config https://www.ory.sh/docs/kratos/reference/configuration
   config:
@@ -90,6 +95,14 @@ kratos:
 
         settings:
           ui_url: http://localhost:3002/settings
+          # after:
+          #   profile:
+          #     hooks:
+          #       - hook: web_hook
+          #         config:
+          #           url: "add a discord webhook"
+          #           method: POST
+          #           body: /etc/config/post-profile-update-hook.jsonnet
 
     cookies:
       domain: localhost
