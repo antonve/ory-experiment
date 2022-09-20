@@ -1,72 +1,125 @@
-import { SelfServiceLoginFlow } from '@ory/client'
-import type { NextPage, GetServerSideProps } from 'next'
-import { useState } from 'react'
+import {
+  SelfServiceLoginFlow,
+  SubmitSelfServiceLoginFlowBody,
+} from '@ory/client'
+import type { NextPage } from 'next'
+import { useEffect, useState } from 'react'
 import Flow from '../ui/Flow'
 import ory from '../src/ory'
-import axios from 'axios'
-import { useAnonymouseRoute, useSession } from '../src/session'
+import { AxiosError } from 'axios'
+import { useLogoutHandler, useSession } from '../src/session'
+import { useRouter } from 'next/router'
+import { handleFlowError } from '../src/errors'
+import Link from 'next/link'
 
 interface Props {
   initialFlow: SelfServiceLoginFlow
 }
 
-const Login: NextPage<Props> = ({ initialFlow }) => {
-  const [flow, setFlow] = useState(initialFlow)
+const Login: NextPage<Props> = () => {
+  const [flow, setFlow] = useState<SelfServiceLoginFlow>()
   const [_, setSession] = useSession()
+  const router = useRouter()
+  const { flow: flowId, return_to: returnTo, refresh, aal } = router.query
 
-  // Would be better to do this at the layout level once the feature is available
-  useAnonymouseRoute()
+  // This might be confusing, but we want to show the user an option
+  // to sign out if they are performing two-factor authentication!
+  const onLogout = useLogoutHandler([aal, refresh])
 
-  const onSubmit = async (data: any) => {
-    if (flow === undefined) {
-      console.error('no login flow available to use')
+  useEffect(() => {
+    // Skip if we aren't ready
+    if (!router.isReady || flow) {
       return
     }
 
-    try {
-      console.log(data)
-      const res = await ory.submitSelfServiceLoginFlow(flow.id, data)
-      setSession(res.data.session)
-    } catch (err) {
-      if (
-        axios.isAxiosError(err) &&
-        err.response?.data &&
-        err.response.status === 400
-      ) {
-        // TODO: figure out types
-        setFlow(err.response.data as SelfServiceLoginFlow)
-      }
+    // If ?flow=.. was in the URL, we fetch it
+    if (flowId) {
+      ory
+        .getSelfServiceLoginFlow(String(flowId))
+        .then(({ data }) => {
+          setFlow(data)
+        })
+        .catch(handleFlowError(router, 'login', setFlow))
+      return
     }
+
+    ory
+      .initializeSelfServiceLoginFlowForBrowsers(
+        Boolean(refresh),
+        aal ? String(aal) : undefined,
+        returnTo ? String(returnTo) : undefined,
+      )
+      .then(({ data }) => {
+        console.log(data)
+        setFlow(data)
+      })
+      .catch(handleFlowError(router, 'login', setFlow))
+  }, [flowId, router, router.isReady, aal, refresh, returnTo, flow])
+
+  if (!flow) {
+    return null
+  }
+
+  const onSubmit = async (data: SubmitSelfServiceLoginFlowBody) => {
+    await router.push(`/login?flow=${flow?.id}`, undefined, {
+      shallow: true,
+    })
+
+    ory
+      .submitSelfServiceLoginFlow(flow.id, data)
+      .then(async ({ data }) => {
+        if (flow?.return_to) {
+          window.location.href = flow?.return_to
+          return
+        }
+
+        const res = await ory.toSession()
+        setSession(res.data)
+
+        router.push('/')
+      })
+      .catch(handleFlowError(router, 'login', setFlow))
+      .catch(async (err: AxiosError) => {
+        // If the previous handler did not catch the error it's most likely a form validation error
+        if (err.response?.status === 400) {
+          // Yup, it is!
+          setFlow(err.response?.data)
+          return
+        }
+
+        return Promise.reject(err)
+      })
   }
 
   return (
     <div>
-      <h1>Log in</h1>
-      <Flow flow={flow} method="password" onSubmit={onSubmit} />
+      <h1>
+        {(() => {
+          if (flow?.refresh) {
+            return 'Confirm Action'
+          } else if (flow?.requested_aal === 'aal2') {
+            return 'Two-Factor Authentication'
+          }
+          return 'Sign In'
+        })()}
+      </h1>
+      <Flow flow={flow} onSubmit={onSubmit} />
+
+      {aal || refresh ? (
+        <a onClick={onLogout}>Log out</a>
+      ) : (
+        <>
+          <Link href="/registration">
+            <a>Create account</a>
+          </Link>
+          <br />
+          <Link href="/recovery">
+            <a>Recover your account</a>
+          </Link>
+        </>
+      )}
     </div>
   )
-}
-
-export const getServerSideProps: GetServerSideProps = async ctx => {
-  try {
-    const { data: initialFlow, headers } =
-      await ory.initializeSelfServiceLoginFlowForBrowsers()
-
-    // Proxy cookies
-    if (headers['set-cookie']) {
-      ctx.res.setHeader('set-cookie', headers['set-cookie'])
-    }
-
-    return { props: { initialFlow } }
-  } catch (err) {
-    return {
-      redirect: {
-        statusCode: 500,
-        destination: '/error',
-      },
-      props: {},
-    }
-  }
 }
 
 export default Login

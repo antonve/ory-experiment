@@ -30,7 +30,7 @@ export type Method =
 
 interface FlowProps {
   flow: SelfServiceFlow | undefined
-  method: Method
+  method?: Method
   onSubmit: (data: any) => void
   hideGlobalMessages?: boolean
 }
