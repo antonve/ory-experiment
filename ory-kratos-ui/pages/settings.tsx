@@ -1,13 +1,13 @@
-import {
-  SelfServiceRegistrationFlow,
-  SelfServiceSettingsFlow,
-} from '@ory/client'
-import type { NextPage, GetServerSideProps } from 'next'
+import { SelfServiceSettingsFlow } from '@ory/client'
+import type { NextPage } from 'next'
 import { useEffect, useState } from 'react'
 import Flow from '../ui/Flow'
 import ory from '../src/ory'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { useSession } from '../src/session'
+import { useRouter } from 'next/router'
+import { handleFlowError } from '../src/errors'
+import MessagesList from '../ui/MessagesList'
 
 interface Props {
   initialFlow: SelfServiceSettingsFlow
@@ -18,13 +18,36 @@ const Settings: NextPage<Props> = () => {
     undefined as SelfServiceSettingsFlow | undefined,
   )
   const [_, setSession] = useSession()
+  const router = useRouter()
+  const { flow: flowId, return_to: returnTo } = router.query
 
   useEffect(() => {
-    ory.initializeSelfServiceSettingsFlowForBrowsers().then(({ data }) => {
-      console.log(data)
-      setFlow(data)
-    })
-  }, [])
+    // Skip if we aren't ready
+    if (!router.isReady || flow) {
+      return
+    }
+
+    // If ?flow=.. was in the URL, we fetch it
+    if (flowId) {
+      ory
+        .getSelfServiceSettingsFlow(String(flowId))
+        .then(({ data }) => {
+          setFlow(data)
+        })
+        .catch(handleFlowError(router, 'settings', setFlow))
+      return
+    }
+
+    ory
+      .initializeSelfServiceSettingsFlowForBrowsers(
+        returnTo ? String(returnTo) : undefined,
+      )
+      .then(({ data }) => {
+        console.log(data)
+        setFlow(data)
+      })
+      .catch(handleFlowError(router, 'settings', setFlow))
+  }, [flowId, router, router.isReady, returnTo, flow])
 
   if (!flow) {
     return null
@@ -36,31 +59,52 @@ const Settings: NextPage<Props> = () => {
       return
     }
 
-    try {
-      console.log(data)
-      const res = await ory.submitSelfServiceSettingsFlow(flow.id, data)
-      console.log('finished', res)
-      const session = await ory.toSession()
-      setSession(session.data)
-    } catch (err) {
-      if (
-        axios.isAxiosError(err) &&
-        err.response?.data &&
-        err.response.status === 400
-      ) {
-        // TODO: figure out types
-        setFlow(err.response.data as SelfServiceSettingsFlow)
-      }
-    }
+    await router.push(`/settings?flow=${flow?.id}`, undefined, {
+      shallow: true,
+    })
+
+    ory
+      .submitSelfServiceSettingsFlow(flow.id, data)
+      .then(async ({ data }) => {
+        console.log('Submitted settings flow', data)
+        setFlow(data)
+
+        // Update session with new data
+        const session = await ory.toSession()
+        setSession(session.data)
+      })
+      .catch(handleFlowError(router, 'settings', setFlow))
+      .catch(async (err: AxiosError) => {
+        // If the previous handler did not catch the error it's most likely a form validation error
+        if (err.response?.status === 400) {
+          setFlow(err.response.data as SelfServiceSettingsFlow)
+          return
+        }
+
+        debugger
+
+        return Promise.reject(err)
+      })
   }
 
   return (
     <div>
       <h1>Settings</h1>
+      <MessagesList messages={flow?.ui.messages} />
       <h2>Profile</h2>
-      <Flow flow={flow} method="profile" onSubmit={onSubmit} />
+      <Flow
+        flow={flow}
+        method="profile"
+        onSubmit={onSubmit}
+        hideGlobalMessages
+      />
       <h2>Password</h2>
-      <Flow flow={flow} method="password" onSubmit={onSubmit} />
+      <Flow
+        flow={flow}
+        method="password"
+        onSubmit={onSubmit}
+        hideGlobalMessages
+      />
     </div>
   )
 }
