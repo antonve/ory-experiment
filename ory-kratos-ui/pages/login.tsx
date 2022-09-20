@@ -28,7 +28,11 @@ const Login: NextPage<Props> = ({ initialFlow }) => {
       const res = await ory.submitSelfServiceLoginFlow(flow.id, data)
       setSession(res.data.session)
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.data) {
+      if (
+        axios.isAxiosError(err) &&
+        err.response?.data &&
+        err.response.status === 400
+      ) {
         // TODO: figure out types
         setFlow(err.response.data as SelfServiceLoginFlow)
       }

@@ -43,7 +43,11 @@ const Settings: NextPage<Props> = () => {
       const session = await ory.toSession()
       setSession(session.data)
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.data) {
+      if (
+        axios.isAxiosError(err) &&
+        err.response?.data &&
+        err.response.status === 400
+      ) {
         // TODO: figure out types
         setFlow(err.response.data as SelfServiceSettingsFlow)
       }

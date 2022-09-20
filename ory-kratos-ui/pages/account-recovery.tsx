@@ -26,7 +26,11 @@ const AccountRecovery: NextPage<Props> = ({ initialFlow }) => {
       console.log(data)
       const res = await ory.submitSelfServiceRecoveryFlow(flow.id, data)
     } catch (err) {
-      if (axios.isAxiosError(err) && err.response?.data) {
+      if (
+        axios.isAxiosError(err) &&
+        err.response?.data &&
+        err.response.status === 400
+      ) {
         // TODO: figure out types
         setFlow(err.response.data as SelfServiceRecoveryFlow)
       }
