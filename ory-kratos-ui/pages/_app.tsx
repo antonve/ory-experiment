@@ -5,6 +5,8 @@ import { Atom, Provider } from 'jotai'
 import { sessionAtom, useSession } from '../src/session'
 import { Session } from '@ory/client'
 import { useRouter } from 'next/router'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 interface Props {
   initialState: {
@@ -33,6 +35,7 @@ const MyApp = ({ Component, pageProps }: AppProps<Props>) => {
         <Header />
         <hr />
         <Component {...pageProps} />
+        <ToastContainer />
       </div>
     </Provider>
   )
