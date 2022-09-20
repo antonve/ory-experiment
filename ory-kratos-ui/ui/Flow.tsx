@@ -6,7 +6,6 @@ import {
   SelfServiceVerificationFlow,
   UiNode,
   UiNodeInputAttributes,
-  UiText,
 } from '@ory/client'
 import {
   isUiNodeInputAttributes,
@@ -17,6 +16,7 @@ import {
   isUiNodeAnchorAttributes,
 } from '@ory/integrations/ui'
 import { useForm, UseFormRegister } from 'react-hook-form'
+import MessagesList from './MessagesList'
 import { NodeAnchor } from './NodeAnchor'
 import { NodeImage } from './NodeImage'
 import { NodeInput } from './NodeInput'
@@ -43,6 +43,7 @@ interface FlowProps {
   flow: SelfServiceFlow | undefined
   method: Method
   onSubmit: (data: any) => void
+  hideGlobalMessages?: boolean
 }
 
 const filterNodes = (
@@ -62,14 +63,6 @@ const filterNodes = (
   })
 }
 
-const getHiddenFieldNames = (nodes: UiNode[]): string[] => {
-  return nodes
-    .map(node => node.attributes)
-    .filter(attr => isUiNodeInputAttributes(attr))
-    .filter(attr => (attr as UiNodeInputAttributes).type === 'hidden')
-    .map(attr => (attr as UiNodeInputAttributes).name)
-}
-
 const defaultValuesFromNodes = (nodes: UiNode[]): { [key: string]: any } => {
   const ignoredNodeTypes = ['button', 'submit']
   return nodes
@@ -87,7 +80,7 @@ const defaultValuesFromNodes = (nodes: UiNode[]): { [key: string]: any } => {
     }, {} as { [key: string]: any })
 }
 
-const Flow = ({ flow, method, onSubmit }: FlowProps) => {
+const Flow = ({ flow, method, onSubmit, hideGlobalMessages }: FlowProps) => {
   const nodes = filterNodes(flow, method)
   const defaultValues = defaultValuesFromNodes(nodes)
 
@@ -103,7 +96,7 @@ const Flow = ({ flow, method, onSubmit }: FlowProps) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <MessagesList messages={flow.ui.messages} />
+      {!hideGlobalMessages && <MessagesList messages={flow.ui.messages} />}
       {nodes.map((node, k) => {
         const id = getNodeId(node)
         return (
@@ -116,40 +109,6 @@ const Flow = ({ flow, method, onSubmit }: FlowProps) => {
         )
       })}
     </form>
-  )
-}
-
-interface MessagesListProps {
-  messages: UiText[] | undefined
-}
-
-const MessagesList = ({ messages }: MessagesListProps) => {
-  if (!messages) {
-    return null
-  }
-
-  return (
-    <ul>
-      {messages.map(m => (
-        <Message key={m.id} message={m} />
-      ))}
-    </ul>
-  )
-}
-
-interface MessageProps {
-  message: UiText
-}
-
-export const Message = ({ message }: MessageProps) => {
-  return (
-    <li
-      style={{
-        backgroundColor: message.type === 'error' ? 'lightred' : 'lightblue',
-      }}
-    >
-      {message.text}
-    </li>
   )
 }
 
