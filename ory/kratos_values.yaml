@@ -78,6 +78,10 @@ kratos:
           config:
             haveibeenpwned_enabled: false
       flows:
+        verification:
+          enabled: true
+          ui_url: http://localhost:3002/verification
+
         recovery:
           enabled: true
           ui_url: http://localhost:3002/account-recovery
@@ -92,6 +96,10 @@ kratos:
 
         login:
           ui_url: http://localhost:3002/login
+          after:
+            password:
+              hooks:
+                - hook: require_verified_address
 
         settings:
           ui_url: http://localhost:3002/settings
