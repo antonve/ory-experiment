@@ -109,11 +109,11 @@ const Login: NextPage<Props> = () => {
         <a onClick={onLogout}>Log out</a>
       ) : (
         <>
-          <Link href="/registration">
+          <Link href="/register">
             <a>Create account</a>
           </Link>
           <br />
-          <Link href="/recovery">
+          <Link href="/account-recovery">
             <a>Recover your account</a>
           </Link>
         </>

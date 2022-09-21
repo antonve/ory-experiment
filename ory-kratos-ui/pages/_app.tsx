@@ -1,10 +1,9 @@
 import App, { AppContext, AppProps } from 'next/app'
-import Link from 'next/link'
 import ory from '../src/ory'
 import { Atom, Provider } from 'jotai'
-import { sessionAtom, useSession } from '../src/session'
+import { sessionAtom } from '../src/session'
 import { Session } from '@ory/client'
-import { useRouter } from 'next/router'
+import Header from '../ui/Header'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -38,67 +37,6 @@ const MyApp = ({ Component, pageProps }: AppProps<Props>) => {
         <ToastContainer />
       </div>
     </Provider>
-  )
-}
-
-const Header = () => {
-  const [session] = useSession()
-  const router = useRouter()
-
-  if (session) {
-    const logOut = async () => {
-      try {
-        const { data } = await ory.createSelfServiceLogoutFlowUrlForBrowsers()
-        router.replace(data.logout_url)
-      } catch (err) {
-        // TODO
-        console.error(err)
-      }
-    }
-
-    return (
-      <>
-        <span>
-          Hello, <strong>{session.identity.traits['display_namename']}</strong>
-        </span>
-        <br />
-        <Link href="/">
-          <a>Home</a>
-        </Link>
-        <br />
-        <Link href="/private">
-          <a>Protected page</a>
-        </Link>
-        <br />
-        <Link href="/settings">
-          <a>Settings</a>
-        </Link>
-        <br />
-        <a href="#" onClick={logOut}>
-          Log out
-        </a>
-      </>
-    )
-  }
-
-  return (
-    <>
-      <Link href="/">
-        <a>Home</a>
-      </Link>
-      <br />
-      <Link href="/login">
-        <a>Log in</a>
-      </Link>
-      <br />
-      <Link href="/register">
-        <a>Register</a>
-      </Link>
-      <br />
-      <Link href="/account-recovery">
-        <a>Forgot password?</a>
-      </Link>
-    </>
   )
 }
 
