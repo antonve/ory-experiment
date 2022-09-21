@@ -28,7 +28,8 @@ export function handleGetFlowError<S>(
 ) {
   return async (err: AxiosError) => {
     const errorCode = err.response?.data.error?.id
-    debugger
+    console.error(err)
+
     if (errorCode) {
       switch (errorCode) {
         case 'session_aal2_required':

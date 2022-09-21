@@ -1,40 +1,78 @@
-import { SelfServiceRegistrationFlow } from '@ory/client'
+import {
+  SelfServiceRegistrationFlow,
+  SubmitSelfServiceRegistrationFlowBody,
+} from '@ory/client'
 import type { NextPage, GetServerSideProps } from 'next'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Flow from '../ui/Flow'
 import ory from '../src/ory'
-import axios from 'axios'
 import { useSession } from '../src/session'
+import { useRouter } from 'next/router'
+import { handleFlowError } from '../src/errors'
+import { AxiosError } from 'axios'
 
-interface Props {
-  initialFlow: SelfServiceRegistrationFlow
-}
+interface Props {}
 
-const Register: NextPage<Props> = ({ initialFlow }) => {
-  const [flow, setFlow] = useState(initialFlow)
+const Register: NextPage<Props> = () => {
+  const [flow, setFlow] = useState<SelfServiceRegistrationFlow>()
   const [_, setSession] = useSession()
+  const router = useRouter()
+  const { flow: flowId, return_to: returnTo } = router.query
 
-  const onSubmit = async (data: any) => {
-    if (flow === undefined) {
-      console.error('no registration flow available to use')
+  // In this effect we either initiate a new registration flow, or we fetch an existing registration flow.
+  useEffect(() => {
+    // If the router is not ready yet, or we already have a flow, do nothing.
+    if (!router.isReady || flow) {
       return
     }
 
-    try {
-      console.log(data)
-      const res = await ory.submitSelfServiceRegistrationFlow(flow.id, data)
-      console.log('finished', res)
-      setSession(res.data.session)
-    } catch (err) {
-      if (
-        axios.isAxiosError(err) &&
-        err.response?.data &&
-        err.response.status === 400
-      ) {
-        // TODO: figure out types
-        setFlow(err.response.data as SelfServiceRegistrationFlow)
-      }
+    // If ?flow=.. was in the URL, we fetch it
+    if (flowId) {
+      ory
+        .getSelfServiceRegistrationFlow(String(flowId))
+        .then(({ data }) => {
+          // We received the flow - let's use its data and render the form!
+          setFlow(data)
+        })
+        .catch(handleFlowError(router, 'registration', setFlow))
+      return
     }
+
+    // Otherwise we initialize it
+    ory
+      .initializeSelfServiceRegistrationFlowForBrowsers(
+        returnTo ? String(returnTo) : undefined,
+      )
+      .then(({ data }) => {
+        setFlow(data)
+      })
+      .catch(handleFlowError(router, 'registration', setFlow))
+  }, [flowId, router, router.isReady, returnTo, flow])
+
+  const onSubmit = async (data: SubmitSelfServiceRegistrationFlowBody) => {
+    await router.push(`/register?flow=${flow?.id}`, undefined, {
+      shallow: true,
+    })
+
+    ory
+      .submitSelfServiceRegistrationFlow(String(flow?.id), data)
+      .then(async ({ data }) => {
+        const res = await ory.toSession()
+        setSession(res.data)
+
+        return router.push(flow?.return_to || '/')
+      })
+      .catch(handleFlowError(router, 'registration', setFlow))
+      .catch(async (err: AxiosError) => {
+        // If the previous handler did not catch the error it's most likely a form validation error
+        if (err.response?.status === 400) {
+          // Yup, it is!
+          setFlow(err.response?.data)
+          return
+        }
+
+        return Promise.reject(err)
+      })
   }
 
   return (
@@ -43,28 +81,6 @@ const Register: NextPage<Props> = ({ initialFlow }) => {
       <Flow flow={flow} method="password" onSubmit={onSubmit} />
     </div>
   )
-}
-
-export const getServerSideProps: GetServerSideProps = async ctx => {
-  try {
-    const { data: initialFlow, headers } =
-      await ory.initializeSelfServiceRegistrationFlowForBrowsers()
-
-    // Proxy cookies
-    if (headers['set-cookie']) {
-      ctx.res.setHeader('set-cookie', headers['set-cookie'])
-    }
-
-    return { props: { initialFlow } }
-  } catch (err) {
-    return {
-      redirect: {
-        statusCode: 500,
-        destination: '/error',
-      },
-      props: {},
-    }
-  }
 }
 
 export default Register
