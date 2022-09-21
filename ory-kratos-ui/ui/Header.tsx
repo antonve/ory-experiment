@@ -36,7 +36,7 @@ const ActiveSessionHeader = ({ session }: { session: Session }) => {
   return (
     <>
       <span>
-        Hello, <strong>{session.identity.traits['display_namename']}</strong>
+        Hello, <strong>{session.identity.traits['display_name']}</strong>
       </span>
       <br />
       <Link href="/">
