@@ -57,10 +57,7 @@ const Register: NextPage<Props> = () => {
     ory
       .submitSelfServiceRegistrationFlow(String(flow?.id), data)
       .then(async ({ data }) => {
-        const res = await ory.toSession()
-        setSession(res.data)
-
-        return router.push(flow?.return_to || '/')
+        return router.push('/post-registration')
       })
       .catch(handleFlowError(router, 'registration', setFlow))
       .catch(async (err: AxiosError) => {
