@@ -28,7 +28,7 @@ export function handleGetFlowError<S>(
 ) {
   return async (err: AxiosError) => {
     const errorCode = err.response?.data.error?.id
-    console.error(err)
+    console.error('initial error response', err.response)
 
     if (errorCode) {
       switch (errorCode) {
@@ -78,9 +78,9 @@ export function handleGetFlowError<S>(
       }
     }
 
-    switch (err.response?.status) {
+    const status = err.response?.status
+    switch (status) {
       case 410:
-        // The flow expired, let's request a new one.
         resetFlow(undefined)
         await router.push(flowTypeToRoute(flowType))
         return

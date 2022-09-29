@@ -89,10 +89,10 @@ kratos:
         registration:
           ui_url: "/register"
           lifespan: 1h
-          # after:
-          #   password:
-          #     hooks:
-          #       - hook: session
+          after:
+            password:
+              hooks:
+                - hook: session
 
         login:
           ui_url: http://localhost:3002/login
